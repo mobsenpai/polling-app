@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Forgetpassword() {
+function RegistrationForm() {
   return (
     <div>
       
@@ -8,4 +8,4 @@ function Forgetpassword() {
   )
 }
 
-export default Forgetpassword
+export default RegistrationForm
