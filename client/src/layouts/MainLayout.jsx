@@ -1,6 +1,13 @@
+import Header from "../components/primary/header";
+import {Outlet} from 'react-router-dom'
+
 function MainLayout(){
-    return(
-        <></>
+    return (
+        <>
+            <Header/>
+            <Outlet/>
+
+        </>
     );
 }
 

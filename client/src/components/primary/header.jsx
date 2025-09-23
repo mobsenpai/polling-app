@@ -1,3 +1,5 @@
+import Button from "../elements/Button";
+
 function Header(){
     return(
         <header>
@@ -8,8 +10,8 @@ function Header(){
                 <li><a>Features</a></li>
             </ul>
             <div className="flex items-center">
-                <button>Login</button>
-                <button>Register</button>
+                <Button text="Login"/>
+                <Button text="Register"/>
             </div>
         </header>
     );

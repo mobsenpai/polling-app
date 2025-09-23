@@ -7,6 +7,6 @@ export default function Button({ className, type, onClick, text, secondary, full
     }
     
     return (
-        <button type={type} className={`${secondary ? variants.secondary : variants.primary} ${className} ${fullwidth}`} onClick={onClick}>{text}</button>
+        <button type={!type ? "button" : type} className={`${secondary ? variants.secondary : variants.primary} ${className} ${fullwidth}`} onClick={onClick}>{text}</button>
     )
 }
