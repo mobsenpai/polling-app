@@ -1,11 +1,66 @@
-import React from 'react'
+import React from "react";
+import { useForm } from "react-hook-form";
+import Input from "../elements/Input";
+import Button from "../elements/Button";
+import { Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
-function ForgotPasswordForm() {
+export default function ForgotPasswordForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/forgot-password`,
+        data
+      );
+      if (response.status === 200) {
+        // You can show a success toast or message to user here
+        console.log("Password reset email sent");
+      }
+    } catch (e) {
+      console.error(e);
+      // Optionally show error message to user
+    }
+  };
+
   return (
-    <div>
-      
-    </div>
-  )
-}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-sm mx-auto p-6 flex flex-col mt-30 gap-2 bg-white shadow-sm items-center rounded-lg space-y-4"
+    >
+      <h2 className="text-xl font-semibold text-center text-gray-800">
+        Forgot Password
+      </h2>
 
-export default ForgotPasswordForm
+      <Input
+        label="Email"
+        icon={<Mail size={18} />}
+        name="email"
+        type="email"
+        placeholder="Enter your email"
+        register={register}
+        error={errors.email}
+        className="w-full text-sm"
+        {...register("email", {
+          required: "Email is required",
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: "Enter a valid email",
+          },
+        })}
+      />
+
+      <Button type="submit" text="Send Reset Link" className="w-full" />
+
+      <Link to="/login" className="text-sm text-center text-neutral-800 mt-4">
+        Remember password? <span className="text-primary hover:underline">Login</span>
+      </Link>
+    </form>
+  );
+}
