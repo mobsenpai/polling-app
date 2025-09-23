@@ -1,5 +1,4 @@
 {
-  "type":"module",
   "name": "polling-app",
   "version": "1.0.0",
   "description": "A full-stack polling application.",
