@@ -3,15 +3,14 @@ const { io } = require('../server');
 
 exports.createPoll = async (req, res) => {
   try {
-    const { title, description, options, visibility } = req.body;
+    const { question, options, visibility } = req.body;
 
     if (!title || !options || options.length < 2) {
       return res.status(400).json({ msg: 'Please provide a title and at least two options.' });
     }
 
     const newPoll = new Poll({
-      title,
-      description,
+      question,
       options: options.map(text => ({ text, count: 0 })),
       creator: req.user.id,
       visibility,
@@ -39,7 +38,7 @@ exports.getPollById = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.id).populate('creator', 'name profilePic');
     if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
+      return res.status(404).json({ msg: 'No polls found' });
     }
     res.json(poll);
   } catch (err) {
@@ -113,8 +112,6 @@ exports.castVote = async (req, res) => {
     poll.votes.push({ userId, optionIndex });
 
     await poll.save();
-    
-    io.emit('voteCast', poll);
 
     res.json(poll);
   } catch (err) {
@@ -122,6 +119,7 @@ exports.castVote = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
 
 exports.updateVisibility = async (req, res) => {
   try {

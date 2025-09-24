@@ -5,9 +5,6 @@ const PollSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  description: {
-    type: String,
-  },
   options: [
     {
       text: String,
@@ -22,13 +19,12 @@ const PollSchema = mongoose.Schema({
     ref: 'User',
     required: true,
   },
-    visibility: {
+  visibility: {
     type: String,
     enum: ['private', 'public'], 
     default: 'private',
   },
-
-   votes: [
+  votes: [
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
