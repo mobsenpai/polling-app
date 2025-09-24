@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const PollSchema = new mongoose.Schema({
+const PollSchema = mongoose.Schema({
   question: {
     type: String,
     required: true,
@@ -31,7 +31,7 @@ const PollSchema = new mongoose.Schema({
    votes: [
     {
       userId: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
       },
       optionIndex: Number,
