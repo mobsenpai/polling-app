@@ -30,7 +30,6 @@ export default function LoginForm() {
         }
     };
 
-message
 
     return (
         <form
