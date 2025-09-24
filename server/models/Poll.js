@@ -17,6 +17,21 @@ const PollSchema = mongoose.Schema({
       },
     },
   ],
+  status: {
+    isLive: {
+      type: Boolean,
+      default: false, 
+    },
+    isEnded: {
+      type: Boolean,
+      default: false,
+    }
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

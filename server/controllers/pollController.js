@@ -51,20 +51,26 @@ exports.getPollById = async (req, res) => {
 exports.updatePoll = async (req, res) => {
   try {
     let poll = await Poll.findById(req.params.id);
+
     if (!poll) {
       return res.status(404).json({ msg: 'Poll not found' });
     }
     if (poll.creator.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
-    const { title, description, options, visibility } = req.body;
+
+    if (poll.status.isLive || poll.status.isEnded) {
+      return res.status(403).json({ msg: 'Cannot edit a poll that is live or has ended' });
+    }
+
+    const { title, description, options } = req.body;
+
     if (title) poll.title = title;
     if (description) poll.description = description;
     if (options && options.length >= 2) {
       poll.options = options.map(text => ({ text, count: 0 }));
-      poll.votes = [];
     }
-    if (visibility) poll.visibility = visibility;
+
     await poll.save();
     res.json(poll);
   } catch (err) {
