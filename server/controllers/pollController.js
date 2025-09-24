@@ -1,5 +1,6 @@
 const Poll = require('../models/Poll');
 const { io } = require('../server');
+const User = require('../models/User');
 
 exports.createPoll = async (req, res) => {
   try {
@@ -18,6 +19,8 @@ exports.createPoll = async (req, res) => {
     });
 
     const poll = await newPoll.save();
+  
+  await User.findByIdAndUpdate(req.user.id, { $addToSet: { createdPolls: poll._id } });
     res.status(201).json(poll);
   } catch (err) {
     console.error(err.message);
@@ -119,6 +122,8 @@ exports.castVote = async (req, res) => {
     poll.votes.push({ userId, optionIndex });
 
     await poll.save();
+
+  await User.findByIdAndUpdate(userId, { $addToSet: { votedin: poll._id } });
     
     io.emit('voteCast', poll);
 

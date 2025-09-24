@@ -1,17 +1,18 @@
 const mongoose = require('mongoose');
 
-const PollSchema = mongoose.Schema({
-  question: {
+const PollSchema = new mongoose.Schema({
+  title: {
     type: String,
     required: true,
   },
   description: {
     type: String,
+    required: false,
   },
   options: [
     {
       text: String,
-      votes: {
+      count: {
         type: Number,
         default: 0,
       },
@@ -28,10 +29,6 @@ const PollSchema = mongoose.Schema({
     }
   },
 
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -43,7 +40,7 @@ const PollSchema = mongoose.Schema({
     default: 'private',
   },
 
-   votes: [
+  votes: [
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +49,6 @@ const PollSchema = mongoose.Schema({
       optionIndex: Number,
     },
   ],
-
   createdAt: {
     type: Date,
     default: Date.now,
