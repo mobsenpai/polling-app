@@ -1,6 +1,6 @@
 const Poll = require('../models/Poll');
-const User = require('../models/User');
 const { io } = require('../server');
+const User = require('../models/User');
 
 exports.createPoll = async (req, res) => {
   try {
@@ -19,6 +19,8 @@ exports.createPoll = async (req, res) => {
     });
 
     const poll = await newPoll.save();
+  
+  await User.findByIdAndUpdate(req.user.id, { $addToSet: { createdPolls: poll._id } });
     res.status(201).json(poll);
   } catch (err) {
     console.error(err.message);
@@ -49,101 +51,106 @@ exports.getPollById = async (req, res) => {
   }
 };
 
-exports.castVote = async (req, res) => {
-    try {
-        const poll = await Poll.findById(req.params.id);
-        const userId = req.user.id;
-        const { optionIndex } = req.body;
+exports.updatePoll = async (req, res) => {
+  try {
+    let poll = await Poll.findById(req.params.id);
 
-        if (!poll) {
-            return res.status(404).json({ msg: 'Poll not found' });
-        }
-
-        const userHasVoted = poll.votes.some(vote => vote.userId.toString() === userId);
-        if (userHasVoted) {
-            return res.status(400).json({ msg: 'You have already voted on this poll' });
-        }
-        
-        if (optionIndex < 0 || optionIndex >= poll.options.length) {
-            return res.status(400).json({ msg: 'Invalid option index' });
-        }
-
-        poll.options[optionIndex].count++;
-        poll.votes.push({ userId, optionIndex });
-
-        await poll.save();
-        
-        io.emit('voteCast', poll);
-
-        res.json(poll);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+    if (!poll) {
+      return res.status(404).json({ msg: 'Poll not found' });
     }
+    if (poll.creator.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+
+    if (poll.status.isLive || poll.status.isEnded) {
+      return res.status(403).json({ msg: 'Cannot edit a poll that is live or has ended' });
+    }
+
+    const { title, description, options } = req.body;
+
+    if (title) poll.title = title;
+    if (description) poll.description = description;
+    if (options && options.length >= 2) {
+      poll.options = options.map(text => ({ text, count: 0 }));
+    }
+
+    await poll.save();
+    res.json(poll);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+exports.deletePoll = async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) {
+      return res.status(404).json({ msg: 'Poll not found' });
+    }
+    if (poll.creator.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+    await poll.remove();
+    res.json({ msg: 'Poll removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+exports.castVote = async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id);
+    const userId = req.user.id;
+    const { optionIndex } = req.body;
+
+    if (!poll) {
+      return res.status(404).json({ msg: 'Poll not found' });
+    }
+
+    const userHasVoted = poll.votes.some(vote => vote.userId.toString() === userId);
+    if (userHasVoted) {
+      return res.status(400).json({ msg: 'You have already voted on this poll' });
+    }
+    
+    if (optionIndex < 0 || optionIndex >= poll.options.length) {
+      return res.status(400).json({ msg: 'Invalid option index' });
+    }
+
+    poll.options[optionIndex].count++;
+    poll.votes.push({ userId, optionIndex });
+
+    await poll.save();
+
+  await User.findByIdAndUpdate(userId, { $addToSet: { votedin: poll._id } });
+    
+    io.emit('voteCast', poll);
+
+    res.json(poll);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 };
 
 exports.updateVisibility = async (req, res) => {
-    try {
-        let poll = await Poll.findById(req.params.id);
-        if (!poll) {
-            return res.status(404).json({ msg: 'Poll not found' });
-        }
-
-        if (poll.creator.toString() !== req.user.id) {
-            return res.status(401).json({ msg: 'User not authorized' });
-        }
-        
-        poll.visibility = req.body.visibility;
-        await poll.save();
-
-        res.json(poll);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-};
-
-// controllers/pollController.js
-
-exports.updatePoll = async (req, res) => {
   try {
     let poll = await Poll.findById(req.params.id);
     if (!poll) {
       return res.status(404).json({ msg: 'Poll not found' });
-    } 
+    }
+
     if (poll.creator.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
-    const { title, description, options, visibility } = req.body;
-    if (title) poll.title = title;
-    if (description) poll.description = description;
-      if (options && options.length >= 2) {
-        poll.options = options.map(text => ({ text, count: 0 }));
-        poll.votes = [];
-      }
-      if (visibility) poll.visibility = visibility;
-      await poll.save();
-      res.json(poll);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
-    }
-  };
+    
+    poll.visibility = req.body.visibility;
+    await poll.save();
 
-  // Delete a poll
-  exports.deletePoll = async (req, res) => {
-    try {
-      const poll = await Poll.findById(req.params.id);
-      if (!poll) {
-        return res.status(404).json({ msg: 'Poll not found' });
-      }
-      if (poll.creator.toString() !== req.user.id) {
-        return res.status(401).json({ msg: 'User not authorized' });
-      }
-      await poll.remove();
-      res.json({ msg: 'Poll removed' });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
-    }
-  };
+    res.json(poll);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
