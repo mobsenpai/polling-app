@@ -8,7 +8,7 @@ const {
   deletePoll,
   castVote,
   updateVisibility,
-} = require('../controllers/pollController');
+} = require('../controllers/PollController');
 const { ensureAuth } = require('../middleware/auth');
 
 
