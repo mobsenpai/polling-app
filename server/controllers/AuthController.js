@@ -1,12 +1,8 @@
-const express = require('express');
-const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const router = express.Router();
-const verifyUser = require('../middleware/auth.js')
 
-router.post('/register', async (req, res) => {
+exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -21,9 +17,9 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-router.post('/login', async (req, res) => {
+exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
@@ -40,36 +36,19 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-
-router.get('api/auth/verify',verifyUser,(req, res) => {
-  res.status()
-})
-
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/' }),
-  (req, res) => {
-    res.redirect('http://localhost:3000/dashboard');
-  }
-);
-
-router.get('/logout', (req, res, next) => {
+exports.logoutUser = (req, res, next) => {
   req.logout(function(err) {
     if (err) { return next(err); }
     res.redirect('http://localhost:3000/');
   });
-});
+};
 
-router.get('/me', (req, res) => {
+exports.getMe = (req, res) => {
   if (req.user) {
     res.status(200).json(req.user);
   } else {
     res.status(401).json({ message: 'Not authenticated' });
   }
-});
-
-module.exports = router;
+};
