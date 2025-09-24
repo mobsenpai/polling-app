@@ -35,7 +35,6 @@ export default function ResetPasswordForm() {
         newPassword: password,
       });
       if (response.status === 200) {
-        // Success feedback, then navigate to login page
         navigate("/login");
       } else {
         setError("Failed to reset password");
@@ -48,35 +47,37 @@ export default function ResetPasswordForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-sm mx-auto p-6 flex flex-col gap-4 bg-white shadow-sm rounded-lg"
-    >
-      <h2 className="text-xl font-semibold text-center">Reset Password</h2>
+    <div className="min-h-screen flex items-center justify-center">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-sm w-full p-6 flex flex-col gap-4 bg-white shadow-sm rounded-lg"
+      >
+        <h2 className="text-xl font-semibold text-center">Reset Password</h2>
 
-      <Input
-        label="New Password"
-        icon={<Key size={18} />}
-        name="newPassword"
-        type="password"
-        placeholder="Enter new password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <Input
+          label="New Password"
+          icon={<Key size={18} />}
+          name="newPassword"
+          type="password"
+          placeholder="Enter new password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <Input
-        label="Confirm Password"
-        icon={<Key size={18} />}
-        name="confirmPassword"
-        type="password"
-        placeholder="Confirm new password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-      />
+        <Input
+          label="Confirm Password"
+          icon={<Key size={18} />}
+          name="confirmPassword"
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
 
-      {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-      <Button type="submit" text={loading ? "Resetting..." : "Reset Password"} className="w-full" />
-    </form>
+        <Button type="submit" text={loading ? "Resetting..." : "Reset Password"} className="w-full" />
+      </form>
+    </div>
   );
 }

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
   },
   name: {
@@ -17,8 +17,6 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-
-
   profilePic: {
     type: String,
     default: '',

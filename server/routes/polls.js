@@ -8,9 +8,8 @@ const {
   deletePoll,
   castVote,
   updateVisibility,
-} = require('../controllers/PollController.js');
+} = require('../controllers/pollController.js');
 const { ensureAuth } = require('../middleware/auth');
-
 
 router.get('/api/auth/', getAllPolls);
 

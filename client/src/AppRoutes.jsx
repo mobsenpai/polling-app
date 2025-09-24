@@ -8,6 +8,8 @@ import LoginForm from './components/forms/LoginForm.jsx';
 import RegisterForm from './components/forms/RegistrationForm.jsx';
 import ForgotPasswordForm from './components/forms/ForgotPasswordForm.jsx';
 import ResetPasswordForm from './components/forms/ResetPasswordForm.jsx';
+import PollForm from './components/forms/PollForm.jsx';
+import Polling from './components/dashboard/Polling.jsx';
 
 function AppRoutes() {
   return (
@@ -20,9 +22,12 @@ function AppRoutes() {
         <Route path='/resetpassword' element={<ResetPasswordForm />} />
 
       </Route>
-    
+
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardHome />} />
+        <Route path='/dashboard/polls/create' element={<PollForm />} />
+        <Route path='/dashboard/polls/:id' element={<Polling />} />
+
       </Route>
     </Routes>
 

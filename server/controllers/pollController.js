@@ -1,13 +1,12 @@
 const Poll = require('../models/Poll');
-const { io } = require('../server');
 const User = require('../models/User');
 
 exports.createPoll = async (req, res) => {
   try {
     const { question, options, visibility } = req.body;
 
-    if (!title || !options || options.length < 2) {
-      return res.status(400).json({ msg: 'Please provide a title and at least two options.' });
+    if (!question || !options || options.length < 2) {
+      return res.status(400).json({ msg: 'Please provide a question and at least two options.' });
     }
 
     const newPoll = new Poll({
@@ -65,9 +64,9 @@ exports.updatePoll = async (req, res) => {
       return res.status(403).json({ msg: 'Cannot edit a poll that is live or has ended' });
     }
 
-    const { title, description, options } = req.body;
+    const { question, description, options } = req.body;
 
-    if (title) poll.title = title;
+    if (question) poll.question = question;
     if (description) poll.description = description;
     if (options && options.length >= 2) {
       poll.options = options.map(text => ({ text, count: 0 }));
@@ -123,9 +122,7 @@ exports.castVote = async (req, res) => {
     await poll.save();
 
   await User.findByIdAndUpdate(userId, { $addToSet: { votedin: poll._id } });
-    
-    io.emit('voteCast', poll);
-
+  
     res.json(poll);
   } catch (err) {
     console.error(err.message);

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const PollSchema = new mongoose.Schema({
-  title: {
+  question: {
     type: String,
     required: true,
   },
@@ -39,16 +39,10 @@ const PollSchema = new mongoose.Schema({
     enum: ['private', 'public'], 
     default: 'private',
   },
-
-  votes: [
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-      optionIndex: Number,
-    },
-  ],
+  totalVotes:{
+    type:Number,
+    default:0
+  },
   createdAt: {
     type: Date,
     default: Date.now,
