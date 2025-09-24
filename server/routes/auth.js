@@ -8,11 +8,11 @@ const {
   getMe,
 } = require('../controllers/AuthController');
 
-router.post('/register', registerUser);
+router.post('/api/auth/register', registerUser);
 
-router.post('/login', loginUser);
+router.post('/api/auth/login', loginUser);
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get(
   '/google/callback',
@@ -22,8 +22,8 @@ router.get(
   }
 );
 
-router.get('/logout', logoutUser);
+router.get('/api/auth/logout', logoutUser);
 
-router.get('/me', getMe);
+router.get('/api/auth/me', getMe);
 
 module.exports = router;
