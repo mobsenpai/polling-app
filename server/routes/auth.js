@@ -8,13 +8,11 @@ const {
   getMe,
 } = require('../controllers/AuthController');
 
-const verifyUser = require('../middleware/auth.js')
+router.post('/api/auth/register', registerUser);
 
-router.post('/register', registerUser);
+router.post('/api/auth/login', loginUser);
 
-router.post('/login', loginUser);
-
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get(
   '/google/callback',
@@ -24,19 +22,8 @@ router.get(
   }
 );
 
-router.get("api/auth/verify", verifyUser, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select("-password");
-    if (!user) return res.status(404).json({ msg: "User not found" });
-    res.status(201).json({ user, msg: "Token is valid" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
+router.get('/api/auth/logout', logoutUser);
 
-router.get('/logout', logoutUser);
-
-router.get('/me', getMe);
+router.get('/api/auth/me', getMe);
 
 module.exports = router;
