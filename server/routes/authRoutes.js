@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
+const verifyUser = require('../middleware/auth.js')
 
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -42,6 +43,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+
+router.get('api/auth/verify',verifyUser,(req, res) => {
+  res.status()
+})
 
 router.get(
   '/google/callback',
