@@ -42,7 +42,7 @@ function RegisterForm() {
           type="text"
           placeholder="Enter your full name"
           register={register}
-          className="text-sm"
+          className="text-sm w-full"
           {...register("name", { required: "Name is required" })}
         />
         {errors.name && (
@@ -58,7 +58,7 @@ function RegisterForm() {
           type="email"
           placeholder="Enter your email"
           register={register}
-          className="text-sm"
+          className="text-sm w-full"
           {...register("email", {
             required: "Email is required",
             pattern: {
@@ -80,7 +80,7 @@ function RegisterForm() {
           type="password"
           placeholder="Create a password"
           register={register}
-          className="text-sm"
+          className="text-sm w-full"
           {...register("password", {
             required: "Password is required",
             minLength: {
@@ -102,7 +102,7 @@ function RegisterForm() {
           type="password"
           placeholder="Repeat your password"
           register={register}
-          className="text-sm"
+          className="text-sm w-full"
           {...register("confirmPassword", {
             required: "Please confirm your password",
             validate: (value) =>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 function PollCard({ item }) {
   
   const navigate = useNavigate();
-
+  
   return (
     <div className='flex cursor-pointer flex-col gap-3 p-5 bg-neutral-200 rounded-xl' onClick={() => {navigate(`/dashboard/polls/${item._id}`) }}>
       <div className='flex gap-5 justify-between'>

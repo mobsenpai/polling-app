@@ -17,16 +17,18 @@ export default function LoginForm() {
 
         try {
 
-          const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, data);
-          if (response.status === 200) {
-            // user = {name: , email: , pfp: }
-            // setUser(response.data.user)
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, data);
+            if (response.status === 200) {
+                // user = {name: , email: , pfp: }
+                // setUser(response.data.user)
 
-            //toast("success", response.data.)
-          }
+                // toast("success", response.data.)
 
-        } catch(e) {
-          console.error(e)
+
+            }
+
+        } catch (e) {
+            console.error(e)
         }
     };
 
@@ -40,7 +42,7 @@ export default function LoginForm() {
             {/* Email */}
             <Input
                 label="Email"
-                icon={<Mail size={18}/>}
+                icon={<Mail size={18} />}
                 name="email"
                 type="email"
                 placeholder="Enter your email"
@@ -61,7 +63,7 @@ export default function LoginForm() {
             {/* Password */}
             <Input
                 label="Password"
-                icon={<Key size={18}/>}
+                icon={<Key size={18} />}
                 name="password"
                 type="password"
                 placeholder="Enter your password"
@@ -76,7 +78,11 @@ export default function LoginForm() {
                     },
                 })}
             />
+            {/* Forgot Password */}
+            <div className="flex justify-start w-full items-center">
+                <Link to={'/forgot-password'} className="text-primary hover:underline text-sm">Forgot Password?</Link>
 
+            </div>
             {/* Submit Button */}
             <Button type={"submit"} text={"Login"} className={'w-full'} />
             <Link to={'/register'} className="text-sm text-center text-neutral-800">Don't have Have Account? <span className="text-primary hover:underline">Create New</span></Link>

@@ -18,8 +18,8 @@ function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path='/login' element={<LoginForm />} />
         <Route path='/register' element={<RegisterForm />} />
-        <Route path='/forgotpassword' element={<ForgotPasswordForm />} />
-        <Route path='/resetpassword' element={<ResetPasswordForm />} />
+        <Route path='/forgot-password' element={<ForgotPasswordForm />} />
+        <Route path='/reset-password/:uid' element={<ResetPasswordForm />} />
 
       </Route>
 
