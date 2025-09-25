@@ -1,153 +1,159 @@
-const Poll = require('../models/Poll');
-const User = require('../models/User');
+import Poll from '../models/Poll.js';
+import User from '../models/User.js';
 
-exports.createPoll = async (req, res) => {
+export const createPoll = async (req, res) => {
   try {
-    const { question, options, visibility } = req.body;
-
-    if (!question || !options || options.length < 2) {
-      return res.status(400).json({ msg: 'Please provide a question and at least two options.' });
+    const { title, question, options, end, visibility, multicasting } = req.body;
+    if (!title || !question || !options || options.length < 2 || !end) {
+      return res.status(400).json({ msg: 'Invalid input' });
     }
 
-    const newPoll = new Poll({
+    const formattedOptions = options.map(opt => ({ text: opt }));
+
+    const poll = new Poll({
+      title,
       question,
-      options: options.map(text => ({ text, count: 0 })),
-      creator: req.user.id,
-      visibility,
+      options: formattedOptions,
+      end,
+      visibility: visibility || 'private',
+      multicasting: multicasting ?? true,
+      createdBy: req.user.id,
+      isLive: true,
     });
 
-    const poll = await newPoll.save();
-  
-  await User.findByIdAndUpdate(req.user.id, { $addToSet: { createdPolls: poll._id } });
+    await poll.save();
+    await User.findByIdAndUpdate(req.user.id, { $push: { createdPolls: poll._id } });
+
     res.status(201).json(poll);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
-exports.getAllPolls = async (req, res) => {
+export const getPollById = async (req, res) => {
   try {
-    const polls = await Poll.find().populate('creator', 'name').sort({ createdAt: -1 });
-    res.json(polls);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
+    const poll = await Poll.findById(req.params.id).populate('createdBy', 'name email');
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-exports.getPollById = async (req, res) => {
-  try {
-    const poll = await Poll.findById(req.params.id).populate('creator', 'name profilePic');
-    if (!poll) {
-      return res.status(404).json({ msg: 'No polls found' });
+    if (poll.isLive && poll.end < new Date()) {
+      poll.isLive = false;
+      await poll.save();
     }
+
     res.json(poll);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
-exports.updatePoll = async (req, res) => {
+export const getAllPolls = async (req, res) => {
   try {
-    let poll = await Poll.findById(req.params.id);
+    const polls = await Poll.find({ visibility: 'public' })
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
 
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
-    }
-    if (poll.creator.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
-    }
+    const updatedPolls = await Promise.all(
+      polls.map(async poll => {
+        if (poll.isLive && poll.end < new Date()) {
+          poll.isLive = false;
+          await poll.save();
+        }
+        return poll;
+      })
+    );
 
-    if (poll.status.isLive || poll.status.isEnded) {
-      return res.status(403).json({ msg: 'Cannot edit a poll that is live or has ended' });
-    }
+    res.json(updatedPolls);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
 
-    const { question, description, options } = req.body;
+export const updatePoll = async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+    if (poll.isLive) return res.status(400).json({ msg: 'Cannot update a live poll' });
+    if (poll.createdBy.toString() !== req.user.id) return res.status(403).json({ msg: 'Unauthorized' });
 
+    const { title, question, options, visibility, multicasting, end } = req.body;
+
+    if (title) poll.title = title;
     if (question) poll.question = question;
-    if (description) poll.description = description;
-    if (options && options.length >= 2) {
-      poll.options = options.map(text => ({ text, count: 0 }));
-    }
+    if (options && options.length >= 2) poll.options = options.map(opt => ({ text: opt }));
+    if (visibility) poll.visibility = visibility;
+    if (multicasting !== undefined) poll.multicasting = multicasting;
+    if (end) poll.end = end;
 
     await poll.save();
     res.json(poll);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
-exports.deletePoll = async (req, res) => {
+export const deletePoll = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.id);
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
-    }
-    if (poll.creator.toString() !== req.user.id) {
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+
+    if (poll.createdBy.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
-    await poll.remove();
+
+    await poll.deleteOne();
     res.json({ msg: 'Poll removed' });
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
 
-exports.castVote = async (req, res) => {
+export const castVote = async (req, res) => {
   try {
-    const poll = await Poll.findById(req.params.id);
-    const userId = req.user.id;
     const { optionIndex } = req.body;
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
+    if (!poll.isLive || poll.end < new Date()) {
+      poll.isLive = false;
+      await poll.save();
+      return res.status(400).json({ msg: 'Poll is closed' });
     }
 
-    const userHasVoted = poll.votes.some(vote => vote.userId.toString() === userId);
-    if (userHasVoted) {
-      return res.status(400).json({ msg: 'You have already voted on this poll' });
+    const user = await User.findById(req.user.id);
+    if (user.votedin.includes(poll._id)) {
+      return res.status(400).json({ msg: 'Already voted' });
     }
-    
+
     if (optionIndex < 0 || optionIndex >= poll.options.length) {
-      return res.status(400).json({ msg: 'Invalid option index' });
+      return res.status(400).json({ msg: 'Invalid option' });
     }
 
-    poll.options[optionIndex].count++;
-    poll.votes.push({ userId, optionIndex });
+    poll.options[optionIndex].count += 1;
+    poll.totalVotes += 1;
 
     await poll.save();
+    await User.findByIdAndUpdate(req.user.id, { $push: { votedin: poll._id } });
 
-  await User.findByIdAndUpdate(userId, { $addToSet: { votedin: poll._id } });
-  
     res.json(poll);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
-
-exports.updateVisibility = async (req, res) => {
+export const updateVisibility = async (req, res) => {
   try {
-    let poll = await Poll.findById(req.params.id);
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
-    }
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-    if (poll.creator.toString() !== req.user.id) {
+    if (poll.createdBy.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
-    
+
     poll.visibility = req.body.visibility;
     await poll.save();
 
     res.json(poll);
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };

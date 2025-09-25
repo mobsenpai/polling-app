@@ -1,18 +1,18 @@
-const express = require('express');
-const passport = require('passport');
-const router = express.Router();
-const {
+import express from 'express';
+import passport from 'passport';
+import {
   registerUser,
   loginUser,
   logoutUser,
   getMe,
-} = require('../controllers/AuthController');
+} from '../controllers/AuthController.js';
 
-router.post('/api/auth/register', registerUser);
+const router = express.Router();
 
-router.post('/api/auth/login', loginUser);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
-router.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get(
   '/google/callback',
@@ -22,8 +22,7 @@ router.get(
   }
 );
 
-router.get('/api/auth/logout', logoutUser);
+router.get('/logout', logoutUser);
+router.get('/me', getMe);
 
-router.get('/api/auth/me', getMe);
-
-module.exports = router;
+export default router;

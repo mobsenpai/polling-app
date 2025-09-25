@@ -1,6 +1,5 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   createPoll,
   getAllPolls,
   getPollById,
@@ -8,23 +7,17 @@ const {
   deletePoll,
   castVote,
   updateVisibility,
-} = require('../controllers/pollController.js');
-const { ensureAuth } = require('../middleware/auth');
+} from '../controllers/pollController.js';
+import ensureAuth from '../middleware/auth.js';
 
-router.get('/api/auth/', getAllPolls);
+const router = express.Router();
 
+router.get('/', getAllPolls);
+router.post('/create', ensureAuth, createPoll);
+router.get('/:id', getPollById);
+router.put('/:id', ensureAuth, updatePoll);
+router.delete('/:id', ensureAuth, deletePoll);
+router.post('/:id/vote', ensureAuth, castVote);
+router.patch('/:id/visibility', ensureAuth, updateVisibility);
 
-router.post('/api/auth/', ensureAuth, createPoll);
-
-
-router.get('/api/auth/:id', getPollById);
-
-router.put('/api/auth/:id', ensureAuth, updatePoll);
-
-router.delete('/api/auth/:id', ensureAuth, deletePoll);
-
-router.post('/api/auth/:id/vote', ensureAuth, castVote);
-
-router.patch('/api/auth/:id/visibility', ensureAuth, updateVisibility);
-
-module.exports = router;
+export default router;
