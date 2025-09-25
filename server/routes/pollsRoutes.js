@@ -6,15 +6,15 @@ import {
   updatePoll,
   deletePoll,
 } from "../controllers/pollController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import authenticateJWT from '../middleware/verifyJwt.js'
 
 const router = express.Router();
 
 // CRUD
-router.post("/create", protect, createPoll);
-router.get("/", getPolls);
-router.get("/:id", getPollById);
-router.put("/:id", protect, updatePoll);
-router.delete("/:id", protect, deletePoll);
+router.post("/create", authenticateJWT, createPoll);
+router.get("/", authenticateJWT, getPolls);
+router.get("/:id", authenticateJWT, getPollById);
+router.put("/:id", authenticateJWT, updatePoll);
+router.delete("/:id", authenticateJWT, deletePoll);
 
 export default router;

@@ -3,58 +3,33 @@ import Button from "../elements/Button";
 import Input from "../elements/Input";
 import PollCard from "../primary/PollCard";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
 function DashboardHome() {
     const [polls, setPolls] = useState([]);
     const [filteredPolls, setFilteredPolls] = useState([]);
     const [searchValue, setSearchValue] = useState("");
     const navigate = useNavigate();
-    useEffect(() => {
-        const fetchedPolls = [
-            {
-                "_id": "652d9f8b4e3a9c0012345678",
-                "name": "Favorite Programming Language",
-                "question": "Which programming language do you prefer?",
-                "status": "Closed",
-                "totalVotes": 42,
-                "createdBy": { _id: "2083unfasdhf238nr0i2j3", name: "Aditya Raj" }
-            },
-            {
-                "_id": "652d9f8b4e3a9c0012345679",
-                "name": "Best Frontend Framework",
-                "question": "Which frontend framework do you like the most?",
-                "status": "Open",
-                "totalVotes": 30,
-                "createdBy": { _id: "2083unfasdhf238nr0i2j3", name: "Aditya Raj" }
-            },
-            {
-                "_id": "652d9f8b4e3a9c0012345680",
-                "name": "Preferred IDE",
-                "question": "Which IDE do you use most often?",
-                "status": "Not Started",
-                "totalVotes": 25,
-                "createdBy": { _id: "2083unfasdhf238nr0i2j3", name: "Aditya Raj" }
-            },
-            {
-                "_id": "652d9f8b4e3a9c0012345681",
-                "name": "Best Mobile OS",
-                "question": "Which mobile operating system do you prefer?",
-                "status": "Open",
-                "totalVotes": 18,
-                "createdBy": { _id: "2083unfasdhf238nr0i2j3", name: "Aditya Raj" }
-            },
-            {
-                "_id": "652d9f8b4e3a9c0012345682",
-                "name": "Favorite Database",
-                "question": "Which database technology do you prefer?",
-                "status": "Closed",
-                "totalVotes": 40,
-                "createdBy": { _id: "2083unfasdhf238nr0i2j3", name: "Aditya Raj" }
-            }
-        ];
+    const { user, setLoading } = useAuth();
 
-        setPolls(fetchedPolls);
-        setFilteredPolls(fetchedPolls);
+    const fetchPolls = async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/poll`, {
+                withCredentials: true,
+            });
+            setPolls(res.data);
+        } catch (err) {
+            console.error("Error fetching polls:", err);
+            setError("Failed to load polls");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPolls();
+        setPolls(fetchPolls);
+        setFilteredPolls(fetchPolls);
     }, []);
 
     // Handle search input change
