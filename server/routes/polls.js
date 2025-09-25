@@ -8,7 +8,7 @@ import {
   castVote,
   updateVisibility,
 } from '../controllers/pollController.js';
-import ensureAuth from '../middleware/auth.js';
+import ensureAuth from '../middleware/verifyJwt.js';
 
 const router = express.Router();
 

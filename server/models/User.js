@@ -26,11 +26,6 @@ const UserSchema = new mongoose.Schema({
       return this.type === "normal";
     },
   },
-  profilePic: {
-    type: String,
-    default: '',
-    required: false,
-  },
   createdAt: {
     type: Date,
     default: Date.now,
