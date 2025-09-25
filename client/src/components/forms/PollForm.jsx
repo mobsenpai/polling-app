@@ -21,7 +21,7 @@ export default function PollForm() {
     console.log("Poll Data:", data);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/polls`,
+        `${import.meta.env.VITE_API_URL}/polls/create`,
         data
       );
       if (response.status === 201) console.log("Poll created successfully!");
