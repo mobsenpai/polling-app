@@ -1,10 +1,9 @@
-
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
   },
   name: {
@@ -16,11 +15,21 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-
-
+  type: {
+    type: String,
+    enum: ["normal", "google"],
+    required: true,
+  },
+  password: {
+    type: String,
+    required: function () {
+      return this.type === "normal";
+    },
+  },
   profilePic: {
     type: String,
     default: '',
+    required: false,
   },
   createdAt: {
     type: Date,
@@ -40,4 +49,6 @@ const UserSchema = new mongoose.Schema({
   ],
 });
 
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
+
+export default User;

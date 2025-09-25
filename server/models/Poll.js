@@ -1,13 +1,13 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PollSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
   },
-  description: {
+  question: {
     type: String,
-    required: false,
+    required: true,
   },
   options: [
     {
@@ -18,41 +18,42 @@ const PollSchema = new mongoose.Schema({
       },
     },
   ],
-  status: {
-    isLive: {
-      type: Boolean,
-      default: false, 
-    },
-    isEnded: {
-      type: Boolean,
-      default: false,
-    }
+  multicasting: {
+    type: String,
+    default: true,
   },
-
-  creator: {
+  isLive: {
+    type: Boolean,
+    default: false,
+  },
+  createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-    visibility: {
+  visibility: {
     type: String,
-    enum: ['private', 'public'], 
+    enum: ['private', 'public'],
     default: 'private',
   },
-
-  votes: [
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-      optionIndex: Number,
-    },
-  ],
+  start: {
+    type: Date,
+    default: Date.now,
+  },
+  end: {
+    type: Date,
+    required: true,
+  },
+  totalVotes: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-module.exports = mongoose.model('Poll', PollSchema);
+const Poll = mongoose.model('Poll', PollSchema);
+
+export default Poll;
