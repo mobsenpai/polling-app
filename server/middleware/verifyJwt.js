@@ -1,8 +1,8 @@
 // middleware/verifyJWT.js
-import jwt from 'jsonwebtoken';
+import jwt, { verify } from 'jsonwebtoken';
 import User from '../models/User.js'
 
-export const verifyJWT = async (req, res, next) => {
+const verifyJWT = async (req, res, next) => {
     try {
         // Looking for token in cookies
         const token = req.cookies?.token;
@@ -33,3 +33,7 @@ export const verifyJWT = async (req, res, next) => {
         res.status(500).json({ message: 'Authentication failed' });
     }
 };
+
+
+
+export default verifyJWT;
