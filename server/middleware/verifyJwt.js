@@ -1,5 +1,5 @@
 // middleware/verifyJWT.js
-import jwt, { verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js'
 
 const verifyJWT = async (req, res, next) => {

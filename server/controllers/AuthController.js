@@ -3,6 +3,10 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
+
+export async function forgotPassword () {
+  
+}
 export async function registerUser(req, res) {
   try {
     const { email, password, name } = req.body;
@@ -185,6 +189,7 @@ export const googleAuth = async (req, res) => {
 
 export const logoutUser = (req, res) => {
   // Clears the auth cookie to log the user out
+  console.log("asdflkajsdflkjasdlfkj")
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

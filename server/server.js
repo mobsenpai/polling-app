@@ -1,23 +1,28 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
-import authRoutes from './routes/auth.js';
-import pollRoutes from './routes/polls.js';
+import authRoutes from './routes/authRoutes.js';
+import pollRoutes from './routes/pollsRoutes.js';
 
 dotenv.config();
 
 const app = express();
 
+// Connect to MongoDB
 connectDB();
 
+// Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
+  origin: 'http://localhost:5173',
+  credentials: true, // allow cookies to be sent
 }));
 
 app.use(express.json());
+app.use(cookieParser()); // parse cookies
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/poll', pollRoutes);
 

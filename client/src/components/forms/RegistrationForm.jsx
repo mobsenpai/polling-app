@@ -3,10 +3,13 @@ import { useForm } from "react-hook-form";
 import Input from "../elements/Input";
 import Button from "../elements/Button";
 import { User, Mail, Key } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNotification } from "../../contexts/NotificationContext";
 
 function RegisterForm() {
+  const { showNotification } = useNotification();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -18,12 +21,19 @@ function RegisterForm() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, data);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/register`,
+        data
+      );
+
       if (response.status === 201) {
-        // Registration logic here
+        showNotification("success", "Registration successful!");
+        navigate('/login')
       }
     } catch (e) {
-      console.error(e);
+      const message =
+        e.response?.data?.message || "Registration failed. Please try again.";
+      showNotification("error", message);
     }
   };
 
@@ -32,7 +42,9 @@ function RegisterForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="max-w-sm mx-auto p-6 flex flex-col mt-30 gap-2 bg-white shadow-sm items-center rounded-lg"
     >
-      <h2 className="text-xl font-semibold text-center text-gray-800 mb-4">Create Account</h2>
+      <h2 className="text-xl font-semibold text-center text-gray-800 mb-4">
+        Create Account
+      </h2>
 
       <div className="w-full flex flex-col gap-1">
         <Input
@@ -42,7 +54,6 @@ function RegisterForm() {
           type="text"
           placeholder="Enter your full name"
           register={register}
-          className="text-sm w-full"
           {...register("name", { required: "Name is required" })}
         />
         {errors.name && (
@@ -58,7 +69,6 @@ function RegisterForm() {
           type="email"
           placeholder="Enter your email"
           register={register}
-          className="text-sm w-full"
           {...register("email", {
             required: "Email is required",
             pattern: {
@@ -80,7 +90,6 @@ function RegisterForm() {
           type="password"
           placeholder="Create a password"
           register={register}
-          className="text-sm w-full"
           {...register("password", {
             required: "Password is required",
             minLength: {
@@ -102,11 +111,9 @@ function RegisterForm() {
           type="password"
           placeholder="Repeat your password"
           register={register}
-          className="text-sm w-full"
           {...register("confirmPassword", {
             required: "Please confirm your password",
-            validate: (value) =>
-              value === password || "Passwords do not match"
+            validate: (value) => value === password || "Passwords do not match"
           })}
         />
         {errors.confirmPassword && (
@@ -116,7 +123,8 @@ function RegisterForm() {
 
       <Button type="submit" text="Register" className="w-full" />
       <Link to="/login" className="text-sm text-center text-neutral-800 mt-4">
-        Already have an account? <span className="text-primary hover:underline">Login</span>
+        Already have an account?{" "}
+        <span className="text-primary hover:underline">Login</span>
       </Link>
     </form>
   );

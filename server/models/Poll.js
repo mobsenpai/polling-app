@@ -33,8 +33,8 @@ const PollSchema = new mongoose.Schema({
   },
   visibility: {
     type: String,
-    enum: ['private', 'public'],
-    default: 'private',
+    type: Boolean,
+    default: false
   },
   start: {
     type: Date,
