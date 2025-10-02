@@ -3,8 +3,11 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: false,
     unique: true,
+    sparse: true, // ensures uniqueness only for non-null values
+    required: function () {
+      return this.type === "google";
+    },
   },
   name: {
     type: String,
@@ -20,15 +23,16 @@ const UserSchema = new mongoose.Schema({
     enum: ["normal", "google"],
     required: true,
   },
+  pfp: {
+    type: String,
+    required: true,
+    default: '/uploads/pfp.jpg',
+  },
   password: {
     type: String,
     required: function () {
       return this.type === "normal";
     },
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
   },
   votedin: [
     {
@@ -42,7 +46,8 @@ const UserSchema = new mongoose.Schema({
       ref: 'Poll',
     },
   ],
-});
+}, { timestamps: true });
+
 
 const User = mongoose.model('User', UserSchema);
 

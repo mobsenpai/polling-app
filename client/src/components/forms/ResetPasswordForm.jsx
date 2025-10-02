@@ -1,55 +1,52 @@
-import React, { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import Input from "../elements/Input";
 import Button from "../elements/Button";
 import { Key } from "lucide-react";
-import axios from "axios";
+import { apiCall } from "../../utils/apiCaller";
+import { useNotification } from "../../contexts/NotificationContext";
 
 export default function ResetPasswordForm() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get("token");
-  const userId = searchParams.get("userId");
+  const { token } = useParams();
+  const { showNotification } = useNotification();
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    setError("");
+  const password = watch("password");
+
+  const onSubmit = async (data) => {
     try {
-      setLoading(true);
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/reset-password`, {
-        token,
-        userId,
-        newPassword: password,
+      const response = await apiCall({
+        url: "/auth/reset-password",
+        method: "POST",
+        data: {
+          token,
+          newPassword: data.password,
+        },
       });
-      if (response.status === 200) {
+
+      if (response.success) {
+        showNotification("success", response.data.message);
         navigate("/login");
       } else {
-        setError("Failed to reset password");
+        showNotification("error", response.message || "Failed to reset password");
       }
     } catch (err) {
-      setError("Error resetting password");
-    } finally {
-      setLoading(false);
+      showNotification("error", "Something went wrong");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         className="max-w-sm w-full p-6 flex flex-col gap-4 bg-white shadow-sm rounded-lg"
       >
         <h2 className="text-xl font-semibold text-center">Reset Password</h2>
@@ -57,11 +54,15 @@ export default function ResetPasswordForm() {
         <Input
           label="New Password"
           icon={<Key size={18} />}
-          name="newPassword"
+          name="password"
           type="password"
           placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          register={register}
+          {...register("password", {
+            required: "Password is required",
+            minLength: { value: 6, message: "Password must be at least 6 characters" },
+          })}
+          error={errors.password}
         />
 
         <Input
@@ -70,13 +71,15 @@ export default function ResetPasswordForm() {
           name="confirmPassword"
           type="password"
           placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          register={register}
+          {...register("confirmPassword", {
+            required: "Please confirm your password",
+            validate: (value) => value === password || "Passwords do not match",
+          })}
+          error={errors.confirmPassword}
         />
 
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-
-        <Button type="submit" text={loading ? "Resetting..." : "Reset Password"} className="w-full" />
+        <Button type="submit" loading={isSubmitting} text="Reset Password" className="w-full" />
       </form>
     </div>
   );

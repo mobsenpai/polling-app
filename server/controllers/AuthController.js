@@ -2,40 +2,97 @@ import User from '../models/User.js'
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import cloudinary from '../config/cloudinary.js';
+import { sendEmailInWorker } from '../config/createEmailWorker.js';
 
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
 
-export async function forgotPassword () {
-  
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+    await sendEmailInWorker({
+      to: email,
+      subject: "Reset Your Password",
+      html: `
+        <h2>Hello ${user.name},</h2>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p><b>This link will expire in 15 minutes.</b></p>
+      `,
+    });
+
+    return res.status(200).json({ message: "Reset email sent successfully!" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
 }
+
+
 export async function registerUser(req, res) {
   try {
     const { email, password, name } = req.body;
     if (!email || !password || !name) {
       return res.status(400).json({ message: "Name, email, and password are required." });
     }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists." });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Upload profile picture if provided
+    let pfpUrl = null;
+    if (req.file && req.file.buffer) {
+      pfpUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "user_pfps" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(req.file.buffer); // push buffer from multer
+      });
+    }
+
+    // Create user
     const user = new User({
       name,
       email,
       password: hashedPassword,
-      type: "normal"
+      type: "normal",
+      pfp: pfpUrl || "/static/placeholder.jpg", // fallback image
     });
 
     await user.save();
 
-    const { password: pwd, ...userData } = user.toObject();
-    res.status(201).json({ message: "User registered successfully", user: userData });
-
+    res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        name: user.name, 
+        email: user.email, 
+        type: user.type, 
+        pfp: user.pfp
+      },
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 }
 
@@ -75,7 +132,6 @@ export async function loginUser(req, res) {
       message: "User login successful!", user: {
         _id: user._id,
         name: user.name,
-        role: user.role,
         email: user.email,
         pfp: user.pfp
       }
@@ -88,78 +144,72 @@ export async function loginUser(req, res) {
 }
 
 
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleAuth = async (req, res) => {
   const { token } = req.body;
 
   try {
-    // Google token received and verified successfully
+    // Verify Google token
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID
     });
 
-    // User details extracted from the verified token
     const { sub: googleId, email, name, picture } = ticket.getPayload();
 
-    // Checking if a user with this email already exists
+    // Check if user exists
     let user = await User.findOne({ email });
 
     if (user) {
-      // User found — checking if googleId is already linked
       if (!user.googleId) {
-        // googleId not linked yet — adding it to the existing user
         user.googleId = googleId;
         await user.save();
       }
 
-      // JWT generated for the existing user
+      // Generate JWT
       const jwtToken = jwt.sign(
         { id: user._id, email, name: user.name, pfp: user.pfp },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
       );
 
-      // Token set in cookie
+      // Set cookie
       res.cookie('token', jwtToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
-      // Returning existing user data
+      // Return user data without role
       return res.status(200).json({
         message: "Google login successful",
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role,
-          pfp: user.pfp
+          pfp: user.pfp,
+          type: 'google'
         }
       });
     }
 
-    // No existing user found — proceeding with account creation
+    // Create new user
     const newUser = await User.create({
       name,
       email,
       googleId,
-      role: 'customer',
-      pfp: picture || 'uploads/pfps/default-pfp.jpeg'
+      pfp: picture || 'uploads/pfps/default-pfp.jpeg',
+      type: 'google'
     });
 
-    // JWT generated for the new user
     const jwtToken = jwt.sign(
       { id: newUser._id, email, name: newUser.name, pfp: newUser.pfp },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
-    // Token set in cookie for the new user
     res.cookie('token', jwtToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -167,20 +217,18 @@ export const googleAuth = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    // Returning newly created user data
     return res.status(201).json({
       message: "Google account registered and logged in",
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role,
-        pfp: newUser.pfp
+        pfp: newUser.pfp,
+        type: 'google'
       }
     });
 
   } catch (error) {
-    // Something went wrong during the auth process
     console.error('Error during Google Auth:', error);
     return res.status(500).json({ message: 'Google Authentication failed' });
   }
@@ -189,7 +237,6 @@ export const googleAuth = async (req, res) => {
 
 export const logoutUser = (req, res) => {
   // Clears the auth cookie to log the user out
-  console.log("asdflkajsdflkjasdlfkj")
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -216,4 +263,36 @@ export const verifyUserDetails = (req, res) => {
   });
 };
 
+export async function resetPassword(req, res) {
+  try {
+  
+    const { newPassword, token } = req.body;
 
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful!" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+}

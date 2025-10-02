@@ -1,21 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNotification } from './NotificationContext';
-
+import { apiCall } from '../utils/apiCaller.js';
 const AuthContext = createContext();
 
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);         // Store user info
-  const [loading, setLoading] = useState(true);   // Loading state
-  const [error, setError] = useState(null);       // Error handling
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [userExistence, setUserExistence] = useState(false);
   const { showNotification } = useNotification();
+
   // Verify user based on HTTP-only cookie
   const verifyUserFromCookie = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/auth/verify-user`, {
-        withCredentials: true, 
+      const response = await apiCall({
+        method: 'GET',
+        url: '/auth/verify-user',
+        withCredentials: true,
       });
 
       if (response.status === 200) {
@@ -27,40 +28,35 @@ export const AuthProvider = ({ children }) => {
         logout();
       }
     } catch (err) {
-      // console.error('Error verifying user:', err);
-      // setError('Failed to authenticate user');
       setUser(null);
       logout();
     }
   };
 
-
   useEffect(() => {
-
-      verifyUserFromCookie();
-   
+    verifyUserFromCookie();
   }, []);
-
 
   // Logout function
   const logout = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/auth/logout`, {withCredentials: true}, {
+      const response = await apiCall({
+        method: 'GET',
+        url: '/auth/logout',
         withCredentials: true,
       });
+
       if (response.status === 200) {
-        console.log(response.data)
-      } 
+        showNotification('success', response.data.message || 'Logged out successfully');
+      }
+
       setUser(null);
       setLoading(false);
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (err) {
+      console.error('Logout failed:', err);
+      showNotification('error', 'Logout failed. Please try again.');
     }
-
-
-    //  On component mount, verify the user from cookies
-
-  }
+  };
 
   return (
     <AuthContext.Provider value={{
@@ -77,7 +73,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ustom hook to use AuthContext
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+// Custom hook to use AuthContext
+export const useAuth = () => useContext(AuthContext);

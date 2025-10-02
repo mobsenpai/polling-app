@@ -4,28 +4,32 @@ import Input from "../elements/Input";
 import Button from "../elements/Button";
 import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { useNotification } from "../../contexts/NotificationContext.jsx";
+import { apiCall } from "../../utils/apiCaller.js";
 
 export default function ForgotPasswordForm() {
+  const { showNotification } = useNotification();
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm();
 
   const onSubmit = async (data) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/forgot-password`,
-        data
-      );
-      if (response.status === 200) {
-        // You can show a success toast or message to user here
-        console.log("Password reset email sent");
-      }
-    } catch (e) {
-      console.error(e);
-      // Optionally show error message to user
+    console.log(data)
+    const response = await apiCall({
+      url: "/auth/forgot-password",
+      method: "POST",
+      data,
+
+    });
+
+    if (response.success) {
+      showNotification("success", "Password reset email sent!");
+    } else {
+      console.error(response)
+      showNotification("error", response.message || "Failed to send reset email");
     }
   };
 
@@ -56,10 +60,11 @@ export default function ForgotPasswordForm() {
         })}
       />
 
-      <Button type="submit" text="Send Reset Link" className="w-full" />
+      <Button type="submit" loading={isSubmitting} text="Send Reset Link" className="w-full" />
 
       <Link to="/login" className="text-sm text-center text-neutral-800 mt-4">
-        Remember password? <span className="text-primary hover:underline">Login</span>
+        Remember password?{" "}
+        <span className="text-primary hover:underline">Login</span>
       </Link>
     </form>
   );

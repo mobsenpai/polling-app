@@ -30,7 +30,7 @@ function AppRoutes() {
           element={user ? <Navigate to="/dashboard" /> : <RegisterForm />}
         />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
-        <Route path="/reset-password/:uid" element={<ResetPasswordForm />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordForm />} />
       </Route>
 
       {/* Dashboard routes – protected */}

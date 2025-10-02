@@ -26,32 +26,33 @@ export default function Input({
           {label}
         </label>
       )}
-      <div className={`flex border border-gray-300 
+      <div className="flex flex-col gap-2">
+        <div className={`flex border border-gray-300 
           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
           rounded-${rounded} overflow-hidden
           `}>
-        <div className="bg-primary text-white flex items-center justify-center p-3">
-          {icon}
+          <div className="bg-primary text-white flex items-center justify-center p-3">
+            {icon}
 
-        </div>
-        <input
-          id={name}
-          type={type}
-          placeholder={placeholder}
-          className={` outline-none
+          </div>
+          <input
+            id={name}
+            type={type}
+            placeholder={placeholder}
+            className={` outline-none
          
           ${sizes[size]} 
           ${error ? "border-red-500 focus:ring-red-400" : ""}
           ${className}
         `}
-          {...(register ? register(name) : {})}
-          {...props}
-        />
+            {...(register ? register(name) : {})}
+            {...props}
+          />
+        </div>
         {error && (
           <span className="text-sm text-red-500">{error.message}</span>
         )}
       </div>
-
     </div>
   );
 }

@@ -4,16 +4,20 @@ import { UserIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
+import { getImageURL } from "../../utils/imageUrl";
+import { useState } from "react";
 function Header() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const { showNotification } = useNotification();
+    const [loading, setLoading] = useState(false);
     const handleLogout = () => {
         // logout context will be called here
+        setLoading(true)
         logout();
+        setLoading(false);
         navigate('/login');
-        showNotification("success", "Logout successfully!")
     }
 
 
@@ -33,10 +37,10 @@ function Header() {
                 {user ?
                     <>
                         <div className="flex items-center px-6 py-3 rounded-md bg-neutral-100 gap-2" >
-                            <UserIcon size={20} />
-                            <span className="text-neutral-800 text-sm">Aditya Raj</span>
+                            <img className="rounded-full w-10 h-10 max-w-10 max-h-10" src={getImageURL(user?.pfp)} />
+                            <span className="text-neutral-800 text-sm">{user?.name}</span>
                         </div>
-                        <Button text={"Logout"} secondary onClick={handleLogout} />
+                        <Button text={"Logout"} loading={loading} secondary onClick={handleLogout} />
                     </> :
                     <>
                         <Button text="Login" onClick={() => { navigate("/login") }} />
