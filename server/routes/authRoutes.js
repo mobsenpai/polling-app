@@ -6,10 +6,12 @@ import {
   googleAuth,
   resetPassword,
   forgotPassword,
-  verifyUserDetails
+  verifyUserDetails,
+
 } from '../controllers/AuthController.js';
 import ensureAuth from '../middleware/verifyJwt.js';
 import upload from '../middleware/multer.js';
+
 const router = express.Router();
 
 router.post('/register', upload.single('pfp'), registerUser);
