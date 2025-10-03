@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNotification } from './NotificationContext';
 import { apiCall } from '../utils/apiCaller.js';
+import { toast } from 'react-toastify';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -8,7 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userExistence, setUserExistence] = useState(false);
-  const { showNotification } = useNotification();
 
   // Verify user based on HTTP-only cookie
   const verifyUserFromCookie = async () => {
@@ -47,14 +46,14 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.status === 200) {
-        showNotification('success', response.data.message || 'Logged out successfully');
+        toast.success(response.data.message || "Logged out successfully")
       }
 
       setUser(null);
       setLoading(false);
     } catch (err) {
       console.error('Logout failed:', err);
-      showNotification('error', 'Logout failed. Please try again.');
+      toast.error(response.data.message || "Something went wrong!")
     }
   };
 

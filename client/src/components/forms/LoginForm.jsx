@@ -2,15 +2,14 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import Input from "../elements/Input";
 import Button from "../elements/Button";
-import { useNotification } from "../../contexts/NotificationContext.jsx";
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { Key, Mail } from "lucide-react";
+import { toast } from "react-toastify";
 import { apiCall } from "../../utils/apiCaller.js";
 
 export default function LoginForm() {
-  const { showNotification } = useNotification();
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -31,10 +30,10 @@ export default function LoginForm() {
 
     if (response.success) {
       setUser(response.data.user);
-      showNotification("success", "Login successful!");
+      toast.success("Login successful!");
       navigate('/dashboard');
     } else {
-      showNotification("error", response.message || "Login failed");
+      toast.error(response.data || "Login Failed");
     }
   };
 
@@ -49,16 +48,17 @@ export default function LoginForm() {
 
     if (response.success) {
       setUser(response.data.user);
-      showNotification("success", "Logged in with Google!");
+      toast.success("Logged in with Google!");
+
       navigate('/dashboard');
     } else {
-        console.log(response)
-      showNotification("error", response.message || "Google login failed");
+      console.error(response.message)
+      toast.error(response.message || "Google login failed")
     }
   };
 
   const handleGoogleError = () => {
-    showNotification("error", "Google login was unsuccessful.");
+    toast.error("Google login was unsuccessful.");
   };
 
   return (
@@ -71,7 +71,7 @@ export default function LoginForm() {
       </h2>
 
       <Input
-        icon={<Mail size={18}/>}
+        icon={<Mail size={18} />}
         label="Email"
         name="email"
         type="email"
@@ -89,7 +89,7 @@ export default function LoginForm() {
       />
 
       <Input
-        icon={<Key size={18}/>}
+        icon={<Key size={18} />}
         label="Password"
         name="password"
         type="password"

@@ -3,14 +3,12 @@ import Button from "../elements/Button";
 import { UserIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNotification } from "../../contexts/NotificationContext";
 import { getImageURL } from "../../utils/imageUrl";
 import { useState } from "react";
 function Header() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    const { showNotification } = useNotification();
     const [loading, setLoading] = useState(false);
     const handleLogout = () => {
         // logout context will be called here

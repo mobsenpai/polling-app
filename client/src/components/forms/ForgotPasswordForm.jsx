@@ -4,11 +4,10 @@ import Input from "../elements/Input";
 import Button from "../elements/Button";
 import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useNotification } from "../../contexts/NotificationContext.jsx";
 import { apiCall } from "../../utils/apiCaller.js";
+import { toast } from "react-toastify";
 
 export default function ForgotPasswordForm() {
-  const { showNotification } = useNotification();
 
   const {
     register,
@@ -26,10 +25,10 @@ export default function ForgotPasswordForm() {
     });
 
     if (response.success) {
-      showNotification("success", "Password reset email sent!");
+      toast.success("Password reset email sent!");
     } else {
       console.error(response)
-      showNotification("error", response.message || "Failed to send reset email");
+      toast.error(response.message || "Failed to send reset email")
     }
   };
 

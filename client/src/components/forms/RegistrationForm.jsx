@@ -5,11 +5,11 @@ import Button from "../elements/Button";
 import { User, Mail, Key, Image as ImageIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNotification } from "../../contexts/NotificationContext";
 import { getImageURL } from "../../utils/imageUrl";
+import { toast } from "react-toastify";
+
 import { apiCall } from "../../utils/apiCaller";
 function RegisterForm() {
-  const { showNotification } = useNotification();
   const navigate = useNavigate();
   const {
     register,
@@ -42,12 +42,13 @@ function RegisterForm() {
       });
 
       if (response.success && response.status == 201) {
-        showNotification("success", "Registration successful!");
+        toast.success(response.data.message)
         navigate("/login");
       }
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed. Please try again.";
-      showNotification("error", message);
+      toast.error(message)
+
       console.error(error);
     }
   };

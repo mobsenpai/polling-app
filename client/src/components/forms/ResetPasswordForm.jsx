@@ -5,12 +5,10 @@ import Input from "../elements/Input";
 import Button from "../elements/Button";
 import { Key } from "lucide-react";
 import { apiCall } from "../../utils/apiCaller";
-import { useNotification } from "../../contexts/NotificationContext";
 
 export default function ResetPasswordForm() {
   const navigate = useNavigate();
   const { token } = useParams();
-  const { showNotification } = useNotification();
 
   const {
     register,
@@ -33,13 +31,13 @@ export default function ResetPasswordForm() {
       });
 
       if (response.success) {
-        showNotification("success", response.data.message);
+        toast.success(response?.data.message)
         navigate("/login");
       } else {
-        showNotification("error", response.message || "Failed to reset password");
+        toast.error(response.message)
       }
     } catch (err) {
-      showNotification("error", "Something went wrong");
+      toast.error("Something went wrong!")
     }
   };
 

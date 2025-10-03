@@ -1,14 +1,12 @@
 import React from 'react'
 import Button from '../components/elements/Button'
 import { useNavigate } from 'react-router-dom'
-import { useNotification } from '../contexts/NotificationContext';
 import { useSocket } from '../contexts/SocketAuth';
 export default function HomePage() {
   const navigate = useNavigate();
-  const { showNotification } = useNotification();
 
   const { socket } = useSocket();
-  
+
   // Everything OK Now it's time to API
   return (
     <div className='flex h-screen w-full items-center justify-center'>
